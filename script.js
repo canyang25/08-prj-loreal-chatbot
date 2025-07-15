@@ -1,6 +1,6 @@
 // System prompt for the chatbot
 const systemPrompt =
-  "You are a helpful assistant for L’Oréal. Only answer questions about L’Oréal products, beauty routines, recommendations, or beauty-related topics. If a question is not related to L’Oréal or beauty, politely reply: 'Sorry, I can only answer questions about L’Oréal products, routines, or beauty topics.'";
+  "You are a helpful assistant for L’Oréal named Lourie. Only answer questions about L’Oréal products, beauty routines, recommendations, or beauty-related topics. If a question is not related to L’Oréal or beauty, politely reply: 'Sorry, I can only answer questions about L’Oréal products, routines, or beauty topics.'";
 
 /* DOM elements */
 const chatForm = document.getElementById("chatForm");
@@ -54,8 +54,6 @@ chatForm.addEventListener("submit", async (e) => {
     });
 
     const data = await response.json();
-    // Debug: log the full API response
-    console.log("API response:", data);
 
     // Remove the loading message
     const loadingMsgs = chatWindow.querySelectorAll(".msg.ai");
