@@ -1,5 +1,6 @@
 // System prompt for the chatbot
-const systemPrompt = "You are a helpful assistant for L’Oréal. Only answer questions related to L’Oréal products, skincare/haircare routines, and recommendations. If asked about anything else, politely say you can only help with L’Oréal topics.";
+const systemPrompt =
+  "You are a helpful assistant for L’Oréal. Only answer questions about L’Oréal products, beauty routines, recommendations, or beauty-related topics. If a question is not related to L’Oréal or beauty, politely reply: 'Sorry, I can only answer questions about L’Oréal products, routines, or beauty topics.'";
 
 /* DOM elements */
 const chatForm = document.getElementById("chatForm");
@@ -7,37 +8,81 @@ const userInput = document.getElementById("userInput");
 const chatWindow = document.getElementById("chatWindow");
 
 // Set initial message
-chatWindow.textContent = "👋 Hello! How can I help you today?";
+chatWindow.innerHTML =
+  '<div class="msg ai"><div class="bubble">👋 Hello! How can I help you today?</div></div>';
 
-// Handle form submit//
+// --- Conversation history ---
+const messages = [{ role: "system", content: systemPrompt }];
+
+// Handle form submit
 chatForm.addEventListener("submit", async (e) => {
   e.preventDefault();
 
   // Get user input
   const userMessage = userInput.value.trim();
   if (!userMessage) {
-    chatWindow.innerHTML = "Please enter a message.";
+    chatWindow.innerHTML +=
+      '<div class="msg error"><div class="bubble">Please enter a message.</div></div>';
     return;
   }
 
-   // Show user's message in the chat window
-  chatWindow.innerHTML += `<div class="msg user">${userMessage}</div>`;
+  // Show user's message in the chat window (append in order)
+  chatWindow.innerHTML += `<div class="msg user"><div class="bubble">${userMessage}</div></div>`;
 
-  // message array
-  const messages = [
-    { role: "system", content: systemPrompt },
-    { role: "user", content: userMessage }
-  ];
+  // Add user message to conversation history
+  messages.push({ role: "user", content: userMessage });
+
+  // Show a loading message
+  chatWindow.innerHTML += `<div class="msg ai"><div class="bubble">...</div></div>`;
 
   // Clear user input
   userInput.value = "";
   userInput.focus();
+
+  try {
+    // Send request to OpenAI API with full conversation history
+    const response = await fetch("https://loreal.czhao255.workers.dev", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: "gpt-4o",
+        messages: messages,
+        max_tokens: 200,
+      }),
+    });
+
+    const data = await response.json();
+    // Debug: log the full API response
+    console.log("API response:", data);
+
+    // Remove the loading message
+    const loadingMsgs = chatWindow.querySelectorAll(".msg.ai");
+    if (loadingMsgs.length > 0) {
+      loadingMsgs[loadingMsgs.length - 1].remove();
+    }
+
+    // Show AI response
+    if (data.choices && data.choices[0] && data.choices[0].message) {
+      chatWindow.innerHTML += `<div class="msg ai"><div class="bubble">${data.choices[0].message.content}</div></div>`;
+      // Add AI response to conversation history
+      messages.push({
+        role: "assistant",
+        content: data.choices[0].message.content,
+      });
+      // No need to reset latest question; messages are shown in order
+    } else {
+      chatWindow.innerHTML += `<div class="msg ai"><div class="bubble">Sorry, I couldn't get a response. Please try again.</div></div>`;
+    }
+  } catch (error) {
+    // Remove the loading message
+    const loadingMsgs = chatWindow.querySelectorAll(".msg.ai");
+    if (loadingMsgs.length > 0) {
+      loadingMsgs[loadingMsgs.length - 1].remove();
+    }
+    chatWindow.innerHTML += `<div class="msg ai"><div class="bubble">Error connecting to OpenAI. Please check your API key and internet.</div></div>`;
+  }
 });
 
-/* Handle form submit */
-chatForm.addEventListener("submit", (e) => {
-  e.preventDefault();
-
-  // Show message
-  chatWindow.innerHTML = "Connect to the OpenAI API for a response!";
-});
+// (All chat logic is now handled in the async event listener above)
