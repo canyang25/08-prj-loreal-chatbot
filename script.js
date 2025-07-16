@@ -28,6 +28,10 @@ chatForm.addEventListener("submit", async (e) => {
 
   // Show user's message in the chat window (append in order)
   chatWindow.innerHTML += `<div class="msg user"><div class="bubble">${userMessage}</div></div>`;
+  // Auto-scroll to the latest user message (after DOM update)
+  setTimeout(() => {
+    chatWindow.scrollTop = chatWindow.scrollHeight;
+  }, 0);
 
   // Add user message to conversation history
   messages.push({ role: "user", content: userMessage });
@@ -64,7 +68,6 @@ chatForm.addEventListener("submit", async (e) => {
     // Log the OpenAI response for debugging
     console.log("OpenAI response:", data);
 
-    
     // Show AI response
     if (data.choices && data.choices[0] && data.choices[0].message) {
       chatWindow.innerHTML += `<div class="msg ai"><div class="bubble">${data.choices[0].message.content}</div></div>`;
@@ -73,7 +76,10 @@ chatForm.addEventListener("submit", async (e) => {
         role: "assistant",
         content: data.choices[0].message.content,
       });
-      // No need to reset latest question; messages are shown in order
+      // Auto-scroll to the latest AI response (after DOM update)
+      setTimeout(() => {
+        chatWindow.scrollTop = chatWindow.scrollHeight;
+      }, 0);
     } else {
       chatWindow.innerHTML += `<div class="msg ai"><div class="bubble">Sorry, I couldn't get a response. Please try again.</div></div>`;
     }
