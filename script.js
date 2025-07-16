@@ -61,6 +61,10 @@ chatForm.addEventListener("submit", async (e) => {
       loadingMsgs[loadingMsgs.length - 1].remove();
     }
 
+    // Log the OpenAI response for debugging
+    console.log("OpenAI response:", data);
+
+    
     // Show AI response
     if (data.choices && data.choices[0] && data.choices[0].message) {
       chatWindow.innerHTML += `<div class="msg ai"><div class="bubble">${data.choices[0].message.content}</div></div>`;
